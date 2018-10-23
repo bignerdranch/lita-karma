@@ -40,11 +40,20 @@ module Lita::Handlers::Karma
     end
 
     def link(response)
+      Lita.logger.debug("++++++++")
+      Lita.logger.debug(response)
+      Lita.logger.debug(response.matches)
+
       response.matches.each do |match|
         term1 = get_term(match[0])
         term2 = get_term(match[1])
 
+        Lita.logger.debug(term1)
+        Lita.logger.debug(term2)
+
         result = term1.link(term2)
+
+        Lita.logger.debug(result)
 
         case result
         when Integer
@@ -55,6 +64,8 @@ module Lita::Handlers::Karma
           response.reply t("already_linked", source: term2, target: term1)
         end
       end
+
+      Lita.logger.debug("++++++++")
     end
 
     def unlink(response)
@@ -93,6 +104,11 @@ module Lita::Handlers::Karma
     private
 
     def define_dynamic_routes(pattern)
+
+      Lita.logger.debug("++++++++")
+      Lita.logger.debug("define_dynamic_routes: #{pattern}")
+
+
       self.class.route(
         %r{(#{pattern})\+\+#{token_terminator.source}},
         :increment,
@@ -112,18 +128,21 @@ module Lita::Handlers::Karma
       )
 
       self.class.route(
-        %r{^(#{pattern})\s*\+=\s*(#{pattern})(?:\+\+|--|~~)?#{token_terminator.source}},
+        %r{(#{pattern})\s*\+=\s*(#{pattern})(?:\+\+|--|~~)?#{token_terminator.source}},
         :link,
         command: true,
         help: { t("help.link_key") => t("help.link_value") }
       )
 
       self.class.route(
-        %r{^(#{pattern})\s*-=\s*(#{pattern})(?:\+\+|--|~~)?#{token_terminator.source}},
+        %r{(#{pattern})\s*-=\s*(#{pattern})(?:\+\+|--|~~)?#{token_terminator.source}},
         :unlink,
         command: true,
         help: { t("help.unlink_key") => t("help.unlink_value") }
       )
+
+      Lita.logger.debug("self.class.routes: #{self.class.routes}")
+      Lita.logger.debug("++++++++")
     end
 
     def define_static_routes
@@ -189,8 +208,34 @@ module Lita::Handlers::Karma
       output = response.matches.map do |match|
         get_term(match[0]).public_send(method_name, user)
       end
+      # msg = response.reply output.join("; ")
 
-      response.reply output.join("; ")
+      #[
+      # "@U03QVSMF4 (nerdbot): -7 (-10), linked to: everyone hates you: 0, birdknot: 0, nerdbutt: 9, crazy: 0, jerkbot: -4, nerbot: -2, can’t handle leading whitespace: 0",
+      # "@U15CA21HT (Katie Torres): 475 (469), linked to: saving me from myself: 2, shot in the arm: 1, prolific exclamation points: 1, egg toss champ: 0, hooray rejoice!: 2, let there be light: 0"
+      #]
+      #
+
+      modified_users = []
+      output.each do |u|
+        comps = u.split ", "
+        modified_users.push comps.shift
+      end
+
+      msg = response.reply modified_users.join("\n")
+
+      Lita.logger.debug("--------")
+      Lita.logger.debug(response)
+      Lita.logger.debug(output)
+      Lita.logger.debug(output.join("; "))
+      Lita.logger.debug("--")
+      Lita.logger.debug(msg)
+      Lita.logger.debug(msg["ts"])
+      Lita.logger.debug("--")
+      Lita.logger.debug(modified_users)
+      Lita.logger.debug("--------")
+
+      response.reply "#{msg["ts"]}$_BNR_TS_$#{output.join("\n")}"
     end
 
     # To ensure that constructs like foo++bar or foo--bar (the latter is

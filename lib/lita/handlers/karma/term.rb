@@ -117,7 +117,9 @@
     def total_score
       @total_score ||= begin
         links.inject(own_score) do |memo, linked_term|
-          memo + @link_cache[linked_term].own_score
+          link = @link_cache[linked_term]
+          inc = link.nil? ? 0 : link.own_score
+          memo + inc # @link_cache[linked_term].own_score
         end
       end
     end
