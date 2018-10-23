@@ -94,7 +94,7 @@
       @links_with_scores ||= begin
         {}.tap do |h|
           links.each do |link|
-            h[link] = @link_cache[link].own_score
+            h[link] = @link_cache[link].own_score unless @link_cache[link].nil?
           end
         end
       end
