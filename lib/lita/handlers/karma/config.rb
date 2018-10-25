@@ -6,6 +6,9 @@ module Lita::Handlers::Karma
       term.to_s.downcase.strip
     end
 
+    config :reply_in_thread, default: true
+    config :thread_exceptions, default: []
+    config :thread_threshold, default: 200
     config :cooldown, types: [Integer, nil], default: 300
     config :link_karma_threshold, types: [Integer, nil], default: 10
     config :term_pattern, type: Regexp, default: /[\[\]\p{Word}\._|\{\}]{2,}/

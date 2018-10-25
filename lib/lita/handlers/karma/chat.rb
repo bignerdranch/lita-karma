@@ -216,26 +216,37 @@ module Lita::Handlers::Karma
       #]
       #
 
-      modified_users = []
-      output.each do |u|
-        comps = u.split ", "
-        modified_users.push comps.shift
+      outputText = output.join("; ")
+
+      if config.reply_in_thread && (config.thread_threshold >= 0 && outputText.length > config.thread_threshold)
+
+        modified_users = []
+        output.each do |u|
+          comps = u.split ", "
+          modified_users.push comps.shift
+        end
+
+        payload = ['$_karma_$', config.thread_exceptions.join(','), modified_users.join("\n"), outputText]
+
+        msg = response.reply payload
+
+        Lita.logger.debug("--------")
+        Lita.logger.debug(response)
+        Lita.logger.debug(output)
+        Lita.logger.debug(output.join("; "))
+        Lita.logger.debug("--")
+        Lita.logger.debug(msg)
+        Lita.logger.debug(msg["ts"])
+        Lita.logger.debug("--")
+        Lita.logger.debug(modified_users)
+        Lita.logger.debug(payload)
+        Lita.logger.debug("--------")
+
+        # response.reply "#{msg["ts"]}$_BNR_TS_$#{output.join("\n")}"
+      else
+        response.reply outputText
       end
 
-      msg = response.reply modified_users.join("\n")
-
-      Lita.logger.debug("--------")
-      Lita.logger.debug(response)
-      Lita.logger.debug(output)
-      Lita.logger.debug(output.join("; "))
-      Lita.logger.debug("--")
-      Lita.logger.debug(msg)
-      Lita.logger.debug(msg["ts"])
-      Lita.logger.debug("--")
-      Lita.logger.debug(modified_users)
-      Lita.logger.debug("--------")
-
-      response.reply "#{msg["ts"]}$_BNR_TS_$#{output.join("\n")}"
     end
 
     # To ensure that constructs like foo++bar or foo--bar (the latter is
