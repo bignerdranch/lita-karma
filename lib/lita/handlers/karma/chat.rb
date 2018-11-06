@@ -204,20 +204,20 @@ module Lita::Handlers::Karma
 
     def modify(response, method_name)
       user = response.user
-
-      output = response.matches.map do |match|
-        get_term(match[0]).public_send(method_name, user)
+      term_map = {}
+      response.matches.map do |match|
+        term_map[match[0]] = get_term(match[0]).public_send(method_name, user)
+        # get_term(match[0]).public_send(method_name, user)
       end
       # msg = response.reply output.join("; ")
 
-      #[
-      # "@U03QVSMF4 (nerdbot): -7 (-10), linked to: everyone hates you: 0, birdknot: 0, nerdbutt: 9, crazy: 0, jerkbot: -4, nerbot: -2, can’t handle leading whitespace: 0",
-      # "@U15CA21HT (Katie Torres): 475 (469), linked to: saving me from myself: 2, shot in the arm: 1, prolific exclamation points: 1, egg toss champ: 0, hooray rejoice!: 2, let there be light: 0"
-      #]
-      #
-
-      outputText = output.join("; ")
-
+      # The payload we send to slack is an array with 4 parts:
+      # 0: a key indicating it needs to parse this karma dump
+      # 1: an array of channels to ignore threading
+      # 2: a short version of the output
+      # 3: a long version of the ouput
+      output = term_map.values
+      outputText = output.join("\n")
       if config.reply_in_thread && (config.thread_threshold >= 0 && outputText.length > config.thread_threshold)
 
         modified_users = []
@@ -226,25 +226,9 @@ module Lita::Handlers::Karma
           modified_users.push comps.shift
         end
 
-        payload = ['$_karma_$', config.thread_exceptions.join(','), modified_users.join("\n"), outputText]
-
-        msg = response.reply payload
-
-        Lita.logger.debug("--------")
-        Lita.logger.debug(response)
-        Lita.logger.debug(output)
-        Lita.logger.debug(output.join("; "))
-        Lita.logger.debug("--")
-        Lita.logger.debug(msg)
-        Lita.logger.debug(msg["ts"])
-        Lita.logger.debug("--")
-        Lita.logger.debug(modified_users)
-        Lita.logger.debug(payload)
-        Lita.logger.debug("--------")
-
-        # response.reply "#{msg["ts"]}$_BNR_TS_$#{output.join("\n")}"
+        response.reply ['$_karma_$', config.thread_exceptions.join(','), modified_users.join("\n"), outputText]
       else
-        response.reply outputText
+        response.reply ['$_karma_$', [], '', outputText]
       end
 
     end

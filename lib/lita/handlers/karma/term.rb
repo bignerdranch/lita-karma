@@ -1,6 +1,8 @@
- module Lita::Handlers::Karma
+module Lita::Handlers::Karma
   class Term
     include Lita::Handler::Common
+
+    require_relative 'emojis.rb'
 
     namespace "karma"
 
@@ -32,11 +34,16 @@
     end
 
     def check
-      string = "#{self}: #{total_score}"
+      title = self.to_s
+      title = "@#{title[ /\(.*?\)/]}".gsub(/[\(\)]/, '') if title.start_with? '@U'
+      string = "*#{title}*: #{total_score}"
 
       unless links_with_scores.empty?
-        link_text = links_with_scores.map { |term, score| "#{term}: #{score}" }.join(", ")
-        string << " (#{own_score}), #{t("linked_to")}: #{link_text}"
+        link_text = links_with_scores.map { |term, score|
+          term = ":#{term}:" if EMOJI_KEY_MAP.key? term
+          "#{term} : #{score}"
+        }.join(", ")
+        string << " (#{own_score}), _#{t("linked_to")}_: #{link_text}"
       end
 
       string
@@ -153,3 +160,5 @@
     end
   end
 end
+
+
