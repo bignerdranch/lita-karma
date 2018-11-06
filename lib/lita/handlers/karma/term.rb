@@ -35,7 +35,7 @@ module Lita::Handlers::Karma
 
     def check
       title = self.to_s
-      title = "@#{title[ /\(.*?\)/]}".gsub(/[\(\)]/, '') if title.start_with? '@U'
+      title = "#{title[ /\(.*?\)/]}".gsub(/[\(\)]/, '') if title.start_with? '@U'
       string = "*#{title}*: #{total_score}"
 
       unless links_with_scores.empty?
