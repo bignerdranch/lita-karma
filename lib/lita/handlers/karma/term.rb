@@ -34,8 +34,7 @@ module Lita::Handlers::Karma
     end
 
     def check
-      title = self.to_s
-      title = "#{title[ /\(.*?\)/]}".gsub(/[\(\)]/, '') if title.start_with? '@U'
+      title = self.formatted
       string = "*#{title}*: #{total_score}"
 
       unless links_with_scores.empty?
@@ -114,7 +113,13 @@ module Lita::Handlers::Karma
     end
 
     def own_score
-      @own_score ||= redis.zscore("terms", term).to_i
+      redis.zscore("terms", term).to_i # @own_score ||=
+    end
+
+    def formatted
+      str = self.to_s
+      str = "#{str[ /\(.*?\)/]}".gsub(/[\(\)]/, '') if str.start_with? '@U'
+      str
     end
 
     def to_s
