@@ -40,32 +40,24 @@ module Lita::Handlers::Karma
     end
 
     def link(response)
-      Lita.logger.debug("++++++++")
-      Lita.logger.debug(response)
-      Lita.logger.debug(response.matches)
-
       response.matches.each do |match|
         term1 = get_term(match[0])
         term2 = get_term(match[1])
-
-        Lita.logger.debug(term1)
-        Lita.logger.debug(term2)
-
         result = term1.link(term2)
-
-        Lita.logger.debug(result)
-
         case result
         when Integer
           response.reply t("threshold_not_satisfied", threshold: result)
         when true
-          response.reply t("link_success", source: term2, target: term1)
+          response.reply t("link_success", source: term2, target: term1.formatted)
+          if term2.own_score == 0
+            if term2.increment(response.user)
+              response.reply "New term, *#{term2}* auto-incremented to: *#{term2.own_score}*"
+            end
+          end
         else
-          response.reply t("already_linked", source: term2, target: term1)
+          response.reply t("already_linked", source: term2, target: term1.formatted)
         end
       end
-
-      Lita.logger.debug("++++++++")
     end
 
     def unlink(response)
@@ -74,9 +66,9 @@ module Lita::Handlers::Karma
         term2 = get_term(match[1])
 
         if term1.unlink(term2)
-          response.reply t("unlink_success", source: term2, target: term1)
+          response.reply t("unlink_success", source: term2, target: term1.formatted)
         else
-          response.reply t("already_unlinked", source: term2, target: term1)
+          response.reply t("already_unlinked", source: term2, target: term1.formatted)
         end
       end
     end
